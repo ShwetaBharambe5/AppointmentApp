@@ -11,6 +11,23 @@ document.addEventListener("DOMContentLoaded", function () {
       <p>Phone: ${userDetails.phone}</p>
     `;
     userList.appendChild(listItem);
+
+    // Create a delete button for this user
+    var deleteButton = document.createElement("button");
+    deleteButton.textContent = "Delete";
+    deleteButton.setAttribute("data-id", userDetails._id);
+    
+    // Attach a click event listener to the delete button
+    deleteButton.addEventListener("click", function () {
+      var userId = deleteButton.getAttribute("data-id");
+      deleteUser(userId);
+    });
+
+    // Append the delete button to the list item
+    listItem.appendChild(deleteButton);
+
+    // Append the list item to the user list
+    userList.appendChild(listItem);
   }
 
   // Function to handle form submission
@@ -64,6 +81,38 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Handle any errors that may occur during the GET request
         alert("An error occurred while fetching user data.");
+      });
+  }
+
+  // Handle form submission when submit button is clicked
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    submitForm();
+  });
+
+  // Function to delete user data using Axios DELETE
+  function deleteUser(userId) {
+    axios
+      .delete(`https://crudcrud.com/api/f1af41d5067948c7b2488cbf9cd27b05/post/${userId}`)
+      .then((response) => {
+        console.log("DELETE Response:", response.data);
+
+        // Remove the user's list item from the website
+        var listItem = document.querySelector(`[data-id="${userId}"]`);
+        if (listItem) {
+          listItem.remove();
+        } else {
+          console.warn("List item not found for deletion.");
+        }
+
+        // Display a success message
+        alert("User details deleted successfully!");
+      })
+      .catch((error) => {
+        console.error("DELETE Error:", error);
+
+        // Handle any errors that may occur during the DELETE request
+        alert("An error occurred while deleting user details.");
       });
   }
 

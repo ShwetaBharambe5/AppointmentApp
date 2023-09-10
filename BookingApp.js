@@ -61,6 +61,15 @@ document.addEventListener("DOMContentLoaded", function () {
         email: email,
         phone: phone,
       };
+
+      axios.post("https://crudcrud.com/api/f1af41d5067948c7b2488cbf9cd27b05/post",userDetails)
+            .then((Response) => {
+              console.log(Response)
+            })
+            .catch((err) => {
+              document.body.innerHTML = document.body.innerHTML + "<h4> Something went wrong </h4>";
+              console.log(err)
+            })
   
       // If editing an existing user, store the email before deleting the old data
       if (editingUser) {

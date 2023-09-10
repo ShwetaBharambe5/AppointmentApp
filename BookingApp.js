@@ -1,6 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
   var form = document.getElementById("UserAppointmentForm");
   var userList = document.getElementById("userList");
+  var editingUserId = null; // Declare editingUserId variable
 
   // Function to display user data in the list
   function displayUserData(userDetails) {
@@ -10,20 +11,29 @@ document.addEventListener("DOMContentLoaded", function () {
       <p>Email: ${userDetails.email}</p>
       <p>Phone: ${userDetails.phone}</p>
     `;
-    userList.appendChild(listItem);
+
+    // Create an edit button for this user
+    var editButton = document.createElement("button");
+    editButton.textContent = "Edit";
+    editButton.setAttribute("data-id", userDetails._id);
+
+    editButton.addEventListener("click", function () {
+      var userId = editButton.getAttribute("data-id");
+      editUser(userId);
+    });
 
     // Create a delete button for this user
     var deleteButton = document.createElement("button");
     deleteButton.textContent = "Delete";
     deleteButton.setAttribute("data-id", userDetails._id);
-    
-    // Attach a click event listener to the delete button
+
     deleteButton.addEventListener("click", function () {
       var userId = deleteButton.getAttribute("data-id");
       deleteUser(userId);
     });
 
-    // Append the delete button to the list item
+    // Append the edit and delete buttons to the list item
+    listItem.appendChild(editButton);
     listItem.appendChild(deleteButton);
 
     // Append the list item to the user list
@@ -44,32 +54,48 @@ document.addEventListener("DOMContentLoaded", function () {
       phone: phone,
     };
 
-    // Use Axios to send a POST request to the 'crudcrud.com' API
+    if (editingUserId) {
+      // If editing an existing user, update their details
+      updateUser(editingUserId, userDetails);
+    } else {
+      // If not editing, add a new user
+      addUser(userDetails);
+    }
+  }
+
+  // Function to add a new user
+  function addUser(userDetails) {
     axios
-      .post("https://crudcrud.com/api/f1af41d5067948c7b2488cbf9cd27b05/post", userDetails)
+      .post("https://crudcrud.com/api/982adcb6113740c18338eeff1e7176f1/post", userDetails)
       .then((response) => {
-        console.log("POST Response:", response.data);
+        console.log("User added successfully:", response.data);
 
         // Clear the form fields after submission
         form.reset();
 
         // Display a success message
-        alert("User details submitted successfully!");
+        alert("User details added successfully!");
+
+        // Update the user list
+        updateUserList();
       })
       .catch((error) => {
-        console.error("POST Error:", error);
+        console.error("Error adding user:", error);
 
         // Handle any errors that may occur during the POST request
-        alert("An error occurred while submitting user details.");
+        alert("An error occurred while adding user details.");
       });
   }
 
   // Function to fetch user data using Axios GET
   function fetchUserData() {
     axios
-      .get("https://crudcrud.com/api/f1af41d5067948c7b2488cbf9cd27b05/post")
+      .get("https://crudcrud.com/api/982adcb6113740c18338eeff1e7176f1/post")
       .then((response) => {
         console.log("GET Response:", response.data);
+
+        // Clear the user list
+        userList.innerHTML = "";
 
         // Display the retrieved user data on the screen
         for (var i = 0; i < response.data.length; i++) {
@@ -84,16 +110,63 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
-  // Handle form submission when submit button is clicked
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    submitForm();
-  });
+  // Function to populate the form with user details for editing
+function editUser(userId) {
+  // Fetch the user details from the API by user ID
+  axios
+    .get(`https://crudcrud.com/api/982adcb6113740c18338eeff1e7176f1/post/${userId}`)
+    .then((response) => {
+      var user = response.data;
+
+      // Populate the form fields with user details
+      document.getElementById("name").value = user.name;
+      document.getElementById("email").value = user.email;
+      document.getElementById("phone").value = user.phone;
+
+      // Set the editingUserId to the current user's ID
+      editingUserId = userId;
+    })
+    .catch((error) => {
+      console.error("GET Error:", error);
+
+      // Handle any errors that may occur during the GET request
+      alert("An error occurred while fetching user details.");
+    });
+}
+
+
+  // Function to update the user data using Axios PUT
+function updateUser(userId, userDetails) {
+  axios
+    .put(`https://crudcrud.com/api/982adcb6113740c18338eeff1e7176f1/post/${userId}`, userDetails)
+    .then((response) => {
+      console.log("User updated successfully:", response.data);
+
+      // Clear the form fields after submission
+      form.reset();
+
+      // Display a success message
+      alert("User details updated successfully!");
+
+      // Reset editingUserId
+      editingUserId = null;
+
+      // Update the user list
+      updateUserList();
+    })
+    .catch((error) => {
+      console.error("Error updating user:", error);
+
+      // Handle any errors that may occur during the PUT request
+      alert("An error occurred while updating user details.");
+    });
+}
+
 
   // Function to delete user data using Axios DELETE
   function deleteUser(userId) {
     axios
-      .delete(`https://crudcrud.com/api/f1af41d5067948c7b2488cbf9cd27b05/post/${userId}`)
+      .delete(`https://crudcrud.com/api/982adcb6113740c18338eeff1e7176f1/post/${userId}`)
       .then((response) => {
         console.log("DELETE Response:", response.data);
 
@@ -114,6 +187,13 @@ document.addEventListener("DOMContentLoaded", function () {
         // Handle any errors that may occur during the DELETE request
         alert("An error occurred while deleting user details.");
       });
+  }
+
+  // Function to update the user list after performing actions
+  function updateUserList() {
+    // Clear the user list and fetch updated data
+    userList.innerHTML = "";
+    fetchUserData();
   }
 
   // Handle form submission when submit button is clicked
